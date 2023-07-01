@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import { useState, useEffect } from 'react';
 import ContactForm from '../ContactForm/ContactForm';
 import ContactList from '../ContactList/ContactList';
 import Filter from '../Filter/Filter';
@@ -10,48 +10,43 @@ import { theme } from 'utils-style/Theme';
 
 const LS_KEY = 'phonebook-contacts';
 
-class App extends Component {
-  state = {
-    contacts: [],
-    filter: '',
+function App() {
+  const [contacts, setContacts] = useState(() => {
+    return load(LS_KEY, []);
+  });
+  const [filter, setFilter] = useState('');
+
+  useEffect(() => {
+    save(LS_KEY, contacts);
+  }, [contacts]);
+
+  const isContactInPhonebook = name => {
+    return contacts.some(
+      contact => contact.name.toLowerCase() === name.toLowerCase()
+    );
   };
 
-  componentDidMount() {
-    if (load(LS_KEY, [])) {
-      this.setState({ contacts: load(LS_KEY) });
-    }
-  }
-
-  componentDidUpdate(_, prevState) {
-    if (prevState.contacts !== this.state.contacts) {
-      save(LS_KEY, this.state.contacts);
-    }
-  }
-
-  onChange = e => {
-    const { name, value } = e.target;
-
-    this.setState({ [name]: value });
-  };
-
-  onFormSubmit = (name, number) => {
-    if (this.isContactInPhonebook(name)) {
+  const onFormSubmit = (name, number) => {
+    if (isContactInPhonebook(name)) {
       alert(`${name} is already in contacts.`);
       return;
     }
 
     const id = nanoid(16);
-
-    this.setState(({ contacts }) => {
-      return {
-        contacts: [...contacts, { name, number, id }],
-      };
-    });
+    setContacts(prevState => [...prevState, { name, number, id }]);
   };
 
-  filterContacts = () => {
-    const { filter, contacts } = this.state;
+  const deleteContact = contactId => {
+    setContacts(prevState =>
+      prevState.filter(contact => contact.id !== contactId)
+    );
+  };
 
+  const onChange = e => {
+    setFilter(e.target.value);
+  };
+
+  const filterContacts = () => {
     const filterToLowerCase = filter.toLowerCase();
 
     return contacts.filter(contact =>
@@ -59,39 +54,23 @@ class App extends Component {
     );
   };
 
-  isContactInPhonebook = name => {
-    return this.state.contacts.some(
-      contact => contact.name.toLowerCase() === name.toLowerCase()
-    );
-  };
+  return (
+    <ThemeProvider theme={theme}>
+      <Container>
+        <h1>Phonebook</h1>
+        <ContactForm onFormSubmit={onFormSubmit} />
 
-  deleteContact = contactId => {
-    this.setState(prevState => ({
-      contacts: prevState.contacts.filter(contact => contact.id !== contactId),
-    }));
-  };
-
-  render() {
-    const { filter, contacts } = this.state;
-
-    return (
-      <ThemeProvider theme={theme}>
-        <Container>
-          <h1>Phonebook</h1>
-          <ContactForm onFormSubmit={this.onFormSubmit} />
-
-          <h2>Contacts</h2>
-          <Filter value={filter} onChange={this.onChange} />
-          {contacts.length ? (
-            <ContactList
-              contacts={this.filterContacts()}
-              onDeleteButtonClick={this.deleteContact}
-            />
-          ) : null}
-        </Container>
-      </ThemeProvider>
-    );
-  }
+        <h2>Contacts</h2>
+        <Filter value={filter} onChange={onChange} />
+        {contacts.length ? (
+          <ContactList
+            contacts={filterContacts()}
+            onDeleteButtonClick={deleteContact}
+          />
+        ) : null}
+      </Container>
+    </ThemeProvider>
+  );
 }
 
 export default App;
