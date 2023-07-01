@@ -34,7 +34,7 @@ class App extends Component {
     this.setState({ [name]: value });
   };
 
-  onFormSubmit = ({ name, number }) => {
+  onFormSubmit = (name, number) => {
     if (this.isContactInPhonebook(name)) {
       alert(`${name} is already in contacts.`);
       return;
