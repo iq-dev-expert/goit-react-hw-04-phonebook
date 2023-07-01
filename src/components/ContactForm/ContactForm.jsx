@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { Form } from './ContactForm.styled';
 import { Button } from '../../utils-style/Template.styled';
 
-const ContactForm = ({ onFormSubmit }) => {
+function ContactForm({ onFormSubmit }) {
   const [name, setName] = useState('');
   const [number, setNumber] = useState('');
 
@@ -64,7 +64,7 @@ const ContactForm = ({ onFormSubmit }) => {
       <Button type="submit">Add contact</Button>
     </Form>
   );
-};
+}
 
 ContactForm.propTypes = {
   onFormSubmit: PropTypes.func.isRequired,
